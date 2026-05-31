@@ -12,7 +12,7 @@ async function loadFrontendFiles(env) {
     if (env.ASSETS) {
       try {
         // 主要文件
-        const mainFiles = ['index.html', 'style.css'];
+        const mainFiles = ['dashboard.html', 'style.css'];
         for (const filename of mainFiles) {
           try {
             const res = await env.ASSETS.fetch(new Request(`http://static/${filename}`));
@@ -68,8 +68,8 @@ export async function serveFrontend(request, env) {
 
   const files = await loadFrontendFiles(env);
   
-  // Vue SPA - 所有路由都返回 index.html
-  let html = files['index.html'];
+  // Vue SPA - 所有路由都返回 dashboard.html
+  let html = files['dashboard.html'];
 
   if (html) {
     // 加载并注入外观设置

@@ -34,4 +34,11 @@ if (fs.existsSync(indexHtmlPath)) {
   console.log(`Updated timestamp to ${timestamp}`);
 }
 
+// 重命名为 dashboard.html，避免 ASSETS 直接拦截首页
+const dashboardHtmlPath = path.join(distDir, 'dashboard.html');
+if (fs.existsSync(indexHtmlPath)) {
+  fs.renameSync(indexHtmlPath, dashboardHtmlPath);
+  console.log('Renamed index.html → dashboard.html');
+}
+
 console.log('Build complete!');

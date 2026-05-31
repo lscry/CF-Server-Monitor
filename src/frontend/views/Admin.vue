@@ -249,7 +249,7 @@
           </div>
 
           <div style="margin-top: 20px; text-align: right;">
-            <button @click="saveSettings" class="btn btn-primary" style="padding: 12px 24px; font-size: 14px;">💾 {{ trans.saveConfig }}</button>
+            <button @click="saveSettings" class="btn btn-primary" :disabled="saving" style="padding: 12px 24px; font-size: 14px;">{{ saving ? '⏳' : '💾' }} {{ saving ? trans.saving : trans.saveConfig }}</button>
           </div>
         </div>
       </div>
@@ -416,6 +416,7 @@ const deleteServerId = ref('')
 
 const copiedServerId = ref(null)
 const uninstallCopied = ref(false)
+const saving = ref(false)
 
 const handleLogin = async () => {
     loginError.value = ''
@@ -426,7 +427,7 @@ const handleLogin = async () => {
       loadServers()
       refreshStats()
     } else {
-      loginError.value = trans.errorInvalidUsername
+      loginError.value = trans.value.errorInvalidUsername
       loginForm.value.password = ''
     }
   }
@@ -488,6 +489,9 @@ const loadSettings = async () => {
 }
 
 const saveSettings = async () => {
+    if (saving.value) return
+    saving.value = true
+
     const data = {
       action: 'save_settings',
       settings: {
@@ -518,6 +522,8 @@ const saveSettings = async () => {
       }
     } catch (e) {
       alert('Fail: ' + e.message)
+    } finally {
+      saving.value = false
     }
   }
 
@@ -528,7 +534,7 @@ const saveSettings = async () => {
         const data = await res.json()
         servers.value = data.servers || []
         
-        const serverGroups = [...new Set(servers.value.map(s => s.server_group || trans.default))]
+        const serverGroups = [...new Set(servers.value.map(s => s.server_group || trans.value.default))]
         groups.value = serverGroups
       }
     } catch (e) {
@@ -550,7 +556,7 @@ const refreshStats = async () => {
 
 const addServer = async () => {
     const name = newServerName.value.trim()
-    if (!name) return alert(trans.enterServerName)
+    if (!name) return alert(trans.value.enterServerName)
 
     try {
       const res = await adminApi({ action: 'add', name })
@@ -673,8 +679,8 @@ const saveEdit = async () => {
   }
 
   const batchDelete = async () => {
-    if (selectedServers.value.length === 0) return alert(trans.selectServers)
-    if (!confirm(trans.confirmDeleteServers + selectedServers.value.length + trans.irreversible)) return
+    if (selectedServers.value.length === 0) return alert(trans.value.selectServers)
+    if (!confirm(trans.value.confirmDeleteServers + selectedServers.value.length + trans.value.irreversible)) return
 
     try {
       const res = await adminApi({ action: 'batch_delete', ids: selectedServers.value })
@@ -747,7 +753,7 @@ const getStatusText = (server) => {
     const file = e.target.files[0]
     if (!file) return
     if (file.size > 800 * 1024) {
-      alert(trans.imageSizeWarning)
+      alert(trans.value.imageSizeWarning)
     }
     const reader = new FileReader()
     reader.onload = function(event) {

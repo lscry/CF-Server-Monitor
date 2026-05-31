@@ -63,12 +63,32 @@ export async function handleAdminAPI(request, env, sys) {
       });
     }
     else if (data.action === 'save_settings') {
-      for (const [k, v] of Object.entries(data.settings)) {
-        await env.DB.prepare(
-          'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'
-        ).bind(k, v).run();
+      const settings = data.settings || {};
+
+      const APPEARANCE_FIELDS = ['site_title', 'admin_title', 'custom_bg', 'custom_head', 'custom_script'];
+      const SITE_FIELDS = ['is_public', 'show_price', 'show_expire', 'show_bw', 'show_tf', 'tg_notify', 'tg_bot_token', 'tg_chat_id'];
+
+      const appearanceOptions = {};
+      for (const field of APPEARANCE_FIELDS) {
+        if (settings[field] !== undefined) {
+          appearanceOptions[field] = settings[field];
+        }
       }
-      if (data.settings && ('tg_notify' in data.settings || 'tg_bot_token' in data.settings || 'tg_chat_id' in data.settings)) {
+      await env.DB.prepare(
+        'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'
+      ).bind('appearance_options', JSON.stringify(appearanceOptions)).run();
+
+      const siteOptions = {};
+      for (const field of SITE_FIELDS) {
+        if (settings[field] !== undefined) {
+          siteOptions[field] = settings[field];
+        }
+      }
+      await env.DB.prepare(
+        'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'
+      ).bind('site_options', JSON.stringify(siteOptions)).run();
+
+      if (settings && ('tg_notify' in settings || 'tg_bot_token' in settings || 'tg_chat_id' in settings)) {
         clearNotificationSettingsCache();
       }
       return new Response(JSON.stringify({ 

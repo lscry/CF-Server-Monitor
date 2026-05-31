@@ -239,14 +239,33 @@ export async function initDatabase(db) {
 }
 
 export async function cleanupStaleSettings(db) {
+  console.log('开始清理废弃的 settings key...');
   try {
     const stalePrefixes = ['last_write_%'];
     const staleExact = [
+      'theme',
+      'custom_css',
+      'auto_reset_traffic',
       'last_aggregated_to_120',
       'last_aggregated_to_240',
       'last_aggregated_to_480',
       'last_aggregated_to_960',
-      'last_aggregated_to_1920'
+      'last_aggregated_to_1920',
+      // 已合并到 appearance_options 的旧字段
+      'site_title',
+      'admin_title',
+      'custom_head',
+      'custom_script',
+      'custom_bg',
+      // 已合并到 site_options 的旧字段
+      'is_public',
+      'show_price',
+      'show_expire',
+      'show_bw',
+      'show_tf',
+      'tg_notify',
+      'tg_bot_token',
+      'tg_chat_id'
     ];
     const staleKeysWhere = stalePrefixes.map(() => `key LIKE ?`).concat(staleExact.map(() => `key = ?`)).join(' OR ');
     const staleBindings = [...stalePrefixes, ...staleExact];

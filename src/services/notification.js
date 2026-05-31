@@ -33,35 +33,35 @@ async function loadNotificationSettings(db) {
     return cachedSettings;
   }
 
-  const tgNotifyRes = await db.prepare(
-    "SELECT value FROM settings WHERE key = 'tg_notify'"
-  ).first();
+  const defaults = { tg_notify: 'false', tg_bot_token: '', tg_chat_id: '' };
 
-  if (!tgNotifyRes || tgNotifyRes.value !== 'true') {
-    cachedSettings = { tg_notify: 'false', tg_bot_token: '', tg_chat_id: '' };
-    cacheExpiry = now + CACHE_TTL;
-    return cachedSettings;
+  try {
+    const row = await db.prepare(
+      "SELECT value FROM settings WHERE key = 'site_options'"
+    ).first();
+
+    if (row) {
+      try {
+        const parsed = JSON.parse(row.value);
+        const settings = {
+          tg_notify: parsed.tg_notify || defaults.tg_notify,
+          tg_bot_token: parsed.tg_bot_token || defaults.tg_bot_token,
+          tg_chat_id: parsed.tg_chat_id || defaults.tg_chat_id
+        };
+        cachedSettings = settings;
+        cacheExpiry = now + CACHE_TTL;
+        return settings;
+      } catch (e) {
+        // JSON 解析失败，降级到独立 key
+      }
+    }
+  } catch (e) {
+    console.error('加载通知设置失败:', e);
   }
 
-  const { results } = await db.prepare(
-    "SELECT key, value FROM settings WHERE key IN ('tg_bot_token', 'tg_chat_id')"
-  ).all();
-
-  const settings = {
-    tg_notify: 'true',
-    tg_bot_token: '',
-    tg_chat_id: ''
-  };
-
-  if (results) {
-    results.forEach(r => {
-      settings[r.key] = r.value;
-    });
-  }
-
-  cachedSettings = settings;
+  cachedSettings = defaults;
   cacheExpiry = now + CACHE_TTL;
-  return settings;
+  return defaults;
 }
 
 export function clearNotificationSettingsCache() {

@@ -109,25 +109,29 @@ DELETE FROM settings;
 -- 插入系统配置
 `;
 
-const settings = {
-  site_title: 'Server Monitor Pro',
+const appearanceOptions = {
+  site_title: 'Cloudflare Server Monitor',
   admin_title: 'Admin Panel',
-  api_secret: 'local-dev-secret-change-this-in-production',
+  custom_bg: '',
+  custom_head: '<meta content="test">',
+  custom_script: 'console.log("Hello, World!");'
+};
+
+const siteOptions = {
   is_public: 'false',
-  theme: 'theme1',
   show_price: 'true',
   show_expire: 'true',
   show_bw: 'true',
   show_tf: 'true',
-  custom_head: '',
-  custom_script: '',
-  last_cleanup: now.toString(),
-  last_aggregated_to: (now - 60 * 60 * 1000).toString()
+  tg_notify: 'false',
+  tg_bot_token: '',
+  tg_chat_id: ''
 };
 
-for (const [key, value] of Object.entries(settings)) {
-  sql += `INSERT INTO settings (key, value) VALUES ('${key}', '${value}');\n`;
-}
+sql += `INSERT INTO settings (key, value) VALUES ('appearance_options', '${JSON.stringify(appearanceOptions)}');\n`;
+sql += `INSERT INTO settings (key, value) VALUES ('site_options', '${JSON.stringify(siteOptions)}');\n`;
+sql += `INSERT INTO settings (key, value) VALUES ('last_cleanup', '${now.toString()}');\n`;
+sql += `INSERT INTO settings (key, value) VALUES ('last_aggregated_to', '${(now - 60 * 60 * 1000).toString()}');\n`;
 
 sql += `\n-- 插入服务器数据\n`;
 
